@@ -1,26 +1,24 @@
 # -*- coding:utf-8 -*-
 import os
-import re
 import random
+import re
+from typing import Optional
+
 from ..base import *
 
-
-# VOICE_PATTERN = r'<a href="sound:\/\/([\w\/]*\w*\.mp3)"><audio-%s>'
-# VOICE_PATTERN_WQ = r'<span class="%s"><a href="sound://([\w/]+\w*\.mp3)">(.*?)</span %s>'
-# MAPPINGS = [
-#     ['br', [re.compile(VOICE_PATTERN % r'gb')]],
-#     ['us', [re.compile(VOICE_PATTERN % r'us')]]
-# ]
-# LANG_TO_REGEXPS = {lang: regexps for lang, regexps in MAPPINGS}
-# DICT_PATH = u"/Users/brian/Documents/牛津高阶英汉双解词典第9例句发音版_V1.0.3c/牛津高阶英汉双解词典(第9版)_V1.0.3c.mdx" # u'E:\\BaiduYunDownload\\mdx\\L6mp3.mdx'
-DICT_PATH = ""
+PRONUNCIATION_PATTERN_TEMPLATE = r"sound://(\w*?__{dialect}_\d+.mp3)"
+DIALECT_COLLECTION = ("gb", "us")
+PATTERN_BY_DIALECT_COLLECTION = {
+    dialect: re.compile(PRONUNCIATION_PATTERN_TEMPLATE.format(dialect=dialect))
+    for dialect in DIALECT_COLLECTION
+}
+DICT_PATH: Optional[str] = None
 
 
-@register(["OALD10"])
+@register(["MDX-OALD10", "MDX-OALD10"])
 class OALD10(MdxService):
     def __init__(self):
         dict_path = DICT_PATH
-        # if DICT_PATH is a path, stop auto detect
         if not dict_path:
             from ...service import service_manager, service_pool
 
