@@ -4,24 +4,20 @@ import re
 import random
 from ..base import *
 
-# from BeautifulSoup import BeautifulSoup
-# from bs4 import BeautifulSoup
+
+# VOICE_PATTERN = r'<a href="sound:\/\/([\w\/]*\w*\.mp3)"><audio-%s>'
+# VOICE_PATTERN_WQ = r'<span class="%s"><a href="sound://([\w/]+\w*\.mp3)">(.*?)</span %s>'
+# MAPPINGS = [
+#     ['br', [re.compile(VOICE_PATTERN % r'gb')]],
+#     ['us', [re.compile(VOICE_PATTERN % r'us')]]
+# ]
+# LANG_TO_REGEXPS = {lang: regexps for lang, regexps in MAPPINGS}
+# DICT_PATH = u"/Users/brian/Documents/牛津高阶英汉双解词典第9例句发音版_V1.0.3c/牛津高阶英汉双解词典(第9版)_V1.0.3c.mdx" # u'E:\\BaiduYunDownload\\mdx\\L6mp3.mdx'
+DICT_PATH = ""
 
 
-VOICE_PATTERN = r'<a href="sound:\/\/([\w\/]*\w*\.mp3)"><audio-%s>'
-VOICE_PATTERN_WQ = (
-    r'<span class="%s"><a href="sound://([\w/]+\w*\.mp3)">(.*?)</span %s>'
-)
-MAPPINGS = [
-    ["br", [re.compile(VOICE_PATTERN % r"gb")]],
-    ["us", [re.compile(VOICE_PATTERN % r"us")]],
-]
-LANG_TO_REGEXPS = {lang: regexps for lang, regexps in MAPPINGS}
-DICT_PATH = u"/Users/brian/Documents/牛津高阶英汉双解词典第9例句发音版_V1.0.3c/牛津高阶英汉双解词典(第9版)_V1.0.3c.mdx"  # u'E:\\BaiduYunDownload\\mdx\\L6mp3.mdx'
-
-
-@register([u"本地词典-牛津高阶9例句发音", u"牛津高阶9例句发音"])
-class oalecd9_mdx(MdxService):
+@register(["OALD10"])
+class OALD10(MdxService):
     def __init__(self):
         dict_path = DICT_PATH
         # if DICT_PATH is a path, stop auto detect
@@ -30,12 +26,12 @@ class oalecd9_mdx(MdxService):
 
             for clazz in service_manager.mdx_services:
                 service = service_pool.get(clazz.__unique__)
-                title = service.builder._title if service and service.support else u""
+                title = service.builder._title if service and service.support else ""
                 service_pool.put(service)
-                if title.startswith(u"牛津高阶英汉双解词典"):
+                if title.startswith("牛津高阶英汉双解词典"):
                     dict_path = service.dict_path
                     break
-        super(oalecd9_mdx, self).__init__(dict_path)
+        super(OALD10, self).__init__(dict_path)
 
     @property
     def title(self):
