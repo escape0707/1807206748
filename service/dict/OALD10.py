@@ -17,7 +17,7 @@ class Dialect(enum.Enum):
     AMERICAN = "us"
 
 
-PRONUNCIATION_PATTERN_TEMPLATE = r"sound://(\w*?__{dialect}_\d+.mp3)"
+PRONUNCIATION_PATTERN_TEMPLATE = r"sound://(\w*?{dialect}_\d+.mp3)"
 PATTERN_BY_DIALECT_COLLECTION = {
     dialect: re.compile(PRONUNCIATION_PATTERN_TEMPLATE.format(dialect=dialect.value))
     for dialect in Dialect
@@ -114,22 +114,13 @@ class OALD10(MdxService):
                     # First, remove info other than definition
                     for etc in sense.select("span.ox-enlarge-label"):
                         etc.decompose()
-                    examples = sense.find("ul", class_="examples")
-                    if examples:
-                        for examples_etc in examples.find_next_siblings():
+                    english_definition = sense.find("span", class_="def")
+                    chinese_definition = sense.find("deft")
+                    last_wanted = chinese_definition or english_definition
+                    while last_wanted is not sense:
+                        for examples_etc in last_wanted.find_next_siblings():
                             examples_etc.decompose()
-                        examples.decompose()
-                    else:
-                        english_definition = sense.find("span", class_="def")
-                        chinese_definition = english_definition.next_sibling
-                        if chinese_definition:
-                            last_wanted = (
-                                chinese_definition
-                                if chinese_definition.name == "deft"
-                                else english_definition
-                            )
-                            for examples_etc in last_wanted.find_next_siblings():
-                                examples_etc.decompose()
+                        last_wanted = last_wanted.parent
                     # Insert <li> into <ol>
                     sense_tag = definition_html.new_tag("li")
                     sense_list_tag.append(sense_tag)
