@@ -94,6 +94,9 @@ class OALD10(MdxService):
     def fld_definition(self):
         try:
             html = self._get_html_following_link()
+            pathlib.Path(r"C:\Users\tothe\Workspaces\lookup.html").write_text(
+                html, encoding="utf-8"
+            )
             soup = parse_html(html)
             entry_collection = soup.select("div.entry")
             definition_html = BeautifulSoup("<div></div>", "html.parser")
