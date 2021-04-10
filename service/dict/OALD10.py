@@ -3,7 +3,7 @@ import random
 import re
 import enum
 import pathlib
-from typing import Optional
+from typing import List, Optional
 
 from ..base import *
 
@@ -86,12 +86,43 @@ class OALD10(MdxService):
             html = self.get_html()
         return html
 
-    def _fld_audio(self, audio):
-        name = get_hex_name("mdx-" + self.unique.lower(), audio, "mp3")
-        name = self.save_file(audio, name)
-        if name:
-            return self.get_anki_label(name, "audio")
-        return ""
+    @export("DEF")
+    def fld_definition(self):
+        try:
+            html = self._get_html_following_link()
+            soup = parse_html(html)
+            entry_collection = soup.find_all("div", class_="entry")
+            word_definition: List[str] = []
+            for entry in entry_collection:
+                top = entry.contents[0]
+                sense_list = entry.contents[1]
+                entry_definition: List[str] = []
+                top.find("h1").decompose()
+                for phonetic in top.find_all("span", class_="phon"):
+                    phonetic.decompose()
+                for jumplink in top.find_all("span", class_="jumplink"):
+                    jumplink.decompose()
+                entry_definition.append(top.get_text(" ", strip=True))
+                for sense in sense_list.find_all("li", class_="sense"):
+                    english_definition = sense.find("span", class_="def")
+                    chinese_definition = english_definition.next_sibling
+                    if chinese_definition:
+                        last_wanted = (
+                            chinese_definition
+                            if chinese_definition.name == "deft"
+                            else english_definition
+                        )
+                        for examples_etc in last_wanted.find_next_siblings():
+                            examples_etc.decompose()
+                    entry_definition.append(sense.get_text(" ", strip=True))
+                word_definition.extend(entry_definition)
+            ret = "\n".join(word_definition)
+            pathlib.Path(r"C:\Users\tothe\Workspaces\def.txt").write_text(
+                ret, encoding="utf-8"
+            )
+            return ret
+        except Exception as e:
+            return repr(e)
 
     def _field_pronunciation(self, dialect: Dialect) -> str:
         """获取发音字段"""
