@@ -1,8 +1,7 @@
 # -*- coding:utf-8 -*-
-import os
 import random
 import re
-from enum import Enum, auto
+from enum import Enum
 from pathlib import Path
 from typing import Optional
 
@@ -10,13 +9,13 @@ from ..base import *
 
 
 class Dialect(Enum):
-    gb = auto()
-    us = auto()
+    BRITISH = "gb"
+    AMERICAN = "us"
 
 
 PRONUNCIATION_PATTERN_TEMPLATE = r"sound://(\w*?__{dialect}_\d+.mp3)"
 PATTERN_BY_DIALECT_COLLECTION = {
-    dialect: re.compile(PRONUNCIATION_PATTERN_TEMPLATE.format(dialect=dialect.name))
+    dialect: re.compile(PRONUNCIATION_PATTERN_TEMPLATE.format(dialect=dialect.value))
     for dialect in Dialect
 }
 DICT_PATH: Optional[str] = None
@@ -39,7 +38,7 @@ class OALD10(MdxService):
         super(OALD10, self).__init__(dict_path)
 
     @property
-    def title(self):
+    def title(self) -> str:
         return getattr(self, "__register_label__", self.unique)
 
     @export("HTML")
@@ -58,11 +57,11 @@ class OALD10(MdxService):
 
     @export("BRE_PRON")
     def field_pronunciation_british(self):
-        return self._field_pronunciation("gb")
+        return self._field_pronunciation(Dialect.BRITISH)
 
     @export("AME_PRON")
     def field_pronunciation_american(self):
-        return self._field_pronunciation("us")
+        return self._field_pronunciation(Dialect.AMERICAN)
 
     @export("All examples with audios")
     def fld_sentence_audio(self):
@@ -95,27 +94,15 @@ class OALD10(MdxService):
             return self.get_anki_label(name, "audio")
         return ""
 
-    def _field_pronunciation(self, html, voice):
+    def _field_pronunciation(self, dialect: Dialect):
         """获取发音字段"""
-        for regexp in LANG_TO_REGEXPS[voice]:
-            original_word = self.word
-            if html.startswith("@@@LINK="):
-                self.word = html[8:]
-                html = self.get_html()
-            match = regexp.findall(html)
-            if match:
-                selected_voice = match[0]
-                for voice in match:
-                    if original_word in voice:
-                        selected_voice = voice
-                        break
-                self.word = original_word
-                val = "/" + selected_voice
-                name = get_hex_name("mdx-" + self.unique.lower(), val, "mp3")
-                name = self.save_file(val, name)
-                if name:
-                    return self.get_anki_label(name, "audio")
-        return ""
+        html = self.get_html()
+        pronunciation_pattern = PATTERN_BY_DIALECT_COLLECTION[dialect]
+        match = pronunciation_pattern.search(html)
+        in_mdd_path = "/" + match[1]  # upstream don't use pathlib for this
+        extract_to_path = Path(f"OALD10-{self.word}.mp3")
+        self.save_file(in_mdd_path, extract_to_path)
+        return self.get_anki_label(extract_to_path, "audio")
 
     _PHONETIC_PATTERN = re.compile(r'<span class="phon">/(.*?)/</span>')
 
