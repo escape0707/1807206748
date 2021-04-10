@@ -2,15 +2,16 @@
 import os
 import random
 import re
+from enum import Enum
 from typing import Optional
 
 from ..base import *
 
 PRONUNCIATION_PATTERN_TEMPLATE = r"sound://(\w*?__{dialect}_\d+.mp3)"
-DIALECT_COLLECTION = ("gb", "us")
+Dialect = Enum("gb", "us")
 PATTERN_BY_DIALECT_COLLECTION = {
-    dialect: re.compile(PRONUNCIATION_PATTERN_TEMPLATE.format(dialect=dialect))
-    for dialect in DIALECT_COLLECTION
+    dialect: re.compile(PRONUNCIATION_PATTERN_TEMPLATE.format(dialect=dialect.name))
+    for dialect in Dialect
 }
 DICT_PATH: Optional[str] = None
 
