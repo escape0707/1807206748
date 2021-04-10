@@ -3,6 +3,7 @@ import os
 import random
 import re
 from enum import Enum
+from pathlib import Path
 from typing import Optional
 
 from ..base import *
@@ -35,6 +36,14 @@ class OALD10(MdxService):
     @property
     def title(self):
         return getattr(self, "__register_label__", self.unique)
+
+    @export("HTML")
+    def just_raw_html(self) -> str:
+        html = self.get_html()
+        Path(r"C:\Users\tothe\Workspaces\lookup.html").write_text(
+            html, encoding="utf-8"
+        )
+        return html
 
     def _fld_voice(self, html, voice):
         """获取发音字段"""
