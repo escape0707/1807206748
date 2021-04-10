@@ -45,6 +45,12 @@ class OALD10(MdxService):
         )
         return html
 
+    @export("PHON")
+    def why_i_cant_use_fld_phonetic(self) -> str:  # TODO
+        html = self.get_html()
+        m = self._PHONETIC_PATTERN.search(html)
+        return f"[{m[1]}]" if m else ""
+
     @export("BRE_PRON")
     def field_pronunciation_british(self):
         return self._field_pronunciation("gb")
