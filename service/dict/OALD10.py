@@ -80,6 +80,14 @@ class OALD10(MdxService):
     def fld_first2_sentence_audio(self):
         return self._range_sentence_audio([0, 1])
 
+    @staticmethod
+    def _get_html_following_link(self) -> str:
+        html: str = self.get_html()
+        while html.startswith("@@@LINK="):
+            self.word = html[8:]
+            html = self.get_html()
+        return html
+
     def _fld_audio(self, audio):
         name = get_hex_name("mdx-" + self.unique.lower(), audio, "mp3")
         name = self.save_file(audio, name)

@@ -1,5 +1,5 @@
 {
-  "python.analysis.typeCheckingMode": "off",
+  "python.analysis.typeCheckingMode": "basic",
   "python.pythonPath": "c:\\Users\\tothe\\scoop\\apps\\anki\\current\\data\\addons21\\1807206748\\.venv\\Scripts\\python.exe",
   "python.analysis.diagnosticMode": "openFilesOnly"
 }
