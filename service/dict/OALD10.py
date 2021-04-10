@@ -2,14 +2,19 @@
 import os
 import random
 import re
-from enum import Enum
+from enum import Enum, auto
 from pathlib import Path
 from typing import Optional
 
 from ..base import *
 
+
+class Dialect(Enum):
+    gb = auto()
+    us = auto()
+
+
 PRONUNCIATION_PATTERN_TEMPLATE = r"sound://(\w*?__{dialect}_\d+.mp3)"
-Dialect = Enum("gb", "us")
 PATTERN_BY_DIALECT_COLLECTION = {
     dialect: re.compile(PRONUNCIATION_PATTERN_TEMPLATE.format(dialect=dialect.name))
     for dialect in Dialect
