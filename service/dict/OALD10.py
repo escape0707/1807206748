@@ -1,14 +1,14 @@
 # -*- coding:utf-8 -*-
 import random
 import re
-from enum import Enum
-from pathlib import Path
+import enum
+import pathlib
 from typing import Optional
 
 from ..base import *
 
 
-class Dialect(Enum):
+class Dialect(enum.Enum):
     BRITISH = "gb"
     AMERICAN = "us"
 
@@ -44,7 +44,7 @@ class OALD10(MdxService):
     @export("HTML")
     def just_raw_html(self) -> str:
         html = self.get_html()
-        Path(r"C:\Users\tothe\Workspaces\lookup.html").write_text(
+        pathlib.Path(r"C:\Users\tothe\Workspaces\lookup.html").write_text(
             html, encoding="utf-8"
         )
         return html
@@ -100,7 +100,7 @@ class OALD10(MdxService):
         pronunciation_pattern = PATTERN_BY_DIALECT_COLLECTION[dialect]
         match = pronunciation_pattern.search(html)
         in_mdd_path = "/" + match[1]  # upstream don't use pathlib for this
-        extract_to_path = Path(f"OALD10-{self.word}.mp3")
+        extract_to_path = pathlib.Path(f"OALD10-{self.word}.mp3")
         self.save_file(in_mdd_path, extract_to_path)
         return self.get_anki_label(extract_to_path, "audio")
 
