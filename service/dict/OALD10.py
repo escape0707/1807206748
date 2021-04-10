@@ -1,9 +1,13 @@
 # -*- coding:utf-8 -*-
-import random
-import re
 import enum
 import pathlib
+import random
+import re
+import traceback
 from typing import List, Optional
+
+from bs4 import BeautifulSoup
+from bs4.element import Tag
 
 from ..base import *
 
@@ -91,38 +95,48 @@ class OALD10(MdxService):
         try:
             html = self._get_html_following_link()
             soup = parse_html(html)
-            entry_collection = soup.find_all("div", class_="entry")
-            word_definition: List[str] = []
+            entry_collection = soup.select("div.entry")
+            definition_html = BeautifulSoup("<div></div>", "html.parser")
+            word_definition = definition_html.div
             for entry in entry_collection:
+                # Extract word top level info
+                top_tag = definition_html.new_tag("div")
+                word_definition.append(top_tag)
                 top = entry.contents[0]
-                sense_list = entry.contents[1]
-                entry_definition: List[str] = []
-                top.find("h1").decompose()
-                for phonetic in top.find_all("span", class_="phon"):
-                    phonetic.decompose()
-                for jumplink in top.find_all("span", class_="jumplink"):
-                    jumplink.decompose()
-                entry_definition.append(top.get_text(" ", strip=True))
-                for sense in sense_list.find_all("li", class_="sense"):
-                    english_definition = sense.find("span", class_="def")
-                    chinese_definition = english_definition.next_sibling
-                    if chinese_definition:
-                        last_wanted = (
-                            chinese_definition
-                            if chinese_definition.name == "deft"
-                            else english_definition
-                        )
-                        for examples_etc in last_wanted.find_next_siblings():
+                top_selected = top.select("span:is(.pos, .grammar, .labels)")
+                top_string = " ".join(map(Tag.get_text, top_selected))
+                top_tag.string = top_string
+                # Extract each sense of the word
+                sense_list_tag = definition_html.new_tag("ol")
+                word_definition.append(sense_list_tag)
+                sense_collection = entry.contents[1]
+                for sense in sense_collection.select("li.sense"):
+                    # First, remove info other than definition
+                    for etc in sense.select("span.ox-enlarge-label"):
+                        etc.decompose()
+                    examples = sense.find("ul", class_="examples")
+                    if examples:
+                        for examples_etc in examples.find_next_siblings():
                             examples_etc.decompose()
-                    entry_definition.append(sense.get_text(" ", strip=True))
-                word_definition.extend(entry_definition)
-            ret = "\n".join(word_definition)
-            pathlib.Path(r"C:\Users\tothe\Workspaces\def.txt").write_text(
-                ret, encoding="utf-8"
-            )
-            return ret
-        except Exception as e:
-            return repr(e)
+                        examples.decompose()
+                    else:
+                        english_definition = sense.find("span", class_="def")
+                        chinese_definition = english_definition.next_sibling
+                        if chinese_definition:
+                            last_wanted = (
+                                chinese_definition
+                                if chinese_definition.name == "deft"
+                                else english_definition
+                            )
+                            for examples_etc in last_wanted.find_next_siblings():
+                                examples_etc.decompose()
+                    # Insert <li> into <ol>
+                    sense_tag = definition_html.new_tag("li")
+                    sense_list_tag.append(sense_tag)
+                    sense_tag.string = sense.get_text(" ", strip=True)
+            return definition_html.prettify()
+        except Exception:
+            return traceback.format_exc()
 
     def _field_pronunciation(self, dialect: Dialect) -> str:
         """获取发音字段"""
