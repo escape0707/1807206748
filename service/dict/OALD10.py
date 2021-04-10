@@ -79,7 +79,6 @@ class OALD10(MdxService):
     def fld_first2_sentence_audio(self):
         return self._range_sentence_audio([0, 1])
 
-    @staticmethod
     def _get_html_following_link(self) -> str:
         html: str = self.get_html()
         while html.startswith("@@@LINK="):
@@ -94,11 +93,13 @@ class OALD10(MdxService):
             return self.get_anki_label(name, "audio")
         return ""
 
-    def _field_pronunciation(self, dialect: Dialect):
+    def _field_pronunciation(self, dialect: Dialect) -> str:
         """获取发音字段"""
         html = self.get_html()
         pronunciation_pattern = PATTERN_BY_DIALECT_COLLECTION[dialect]
         match = pronunciation_pattern.search(html)
+        if match is None:
+            return ""
         in_mdd_path = "/" + match[1]  # upstream don't use pathlib for this
         extract_to_path = pathlib.Path(f"OALD10-{self.word}.mp3")
         self.save_file(in_mdd_path, extract_to_path)
