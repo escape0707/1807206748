@@ -45,35 +45,13 @@ class OALD10(MdxService):
         )
         return html
 
-    def _fld_voice(self, html, voice):
-        """获取发音字段"""
-        for regexp in LANG_TO_REGEXPS[voice]:
-            original_word = self.word
-            if html.startswith("@@@LINK="):
-                self.word = html[8:]
-                html = self.get_html()
-            match = regexp.findall(html)
-            if match:
-                selected_voice = match[0]
-                for voice in match:
-                    if original_word in voice:
-                        selected_voice = voice
-                        break
-                self.word = original_word
-                val = "/" + selected_voice
-                name = get_hex_name("mdx-" + self.unique.lower(), val, "mp3")
-                name = self.save_file(val, name)
-                if name:
-                    return self.get_anki_label(name, "audio")
-        return ""
-
     @export("BRE_PRON")
-    def fld_voicebre(self):
-        return self._fld_voice(self.get_html(), "br")
+    def field_pronunciation_british(self):
+        return self._field_pronunciation("gb")
 
     @export("AME_PRON")
-    def fld_voiceame(self):
-        return self._fld_voice(self.get_html(), "us")
+    def field_pronunciation_american(self):
+        return self._field_pronunciation("us")
 
     @export("All examples with audios")
     def fld_sentence_audio(self):
@@ -97,6 +75,30 @@ class OALD10(MdxService):
         if name:
             return self.get_anki_label(name, "audio")
         return ""
+
+    def _field_pronunciation(self, html, voice):
+        """获取发音字段"""
+        for regexp in LANG_TO_REGEXPS[voice]:
+            original_word = self.word
+            if html.startswith("@@@LINK="):
+                self.word = html[8:]
+                html = self.get_html()
+            match = regexp.findall(html)
+            if match:
+                selected_voice = match[0]
+                for voice in match:
+                    if original_word in voice:
+                        selected_voice = voice
+                        break
+                self.word = original_word
+                val = "/" + selected_voice
+                name = get_hex_name("mdx-" + self.unique.lower(), val, "mp3")
+                name = self.save_file(val, name)
+                if name:
+                    return self.get_anki_label(name, "audio")
+        return ""
+
+    _PHONETIC_PATTERN = re.compile(r'<span class="phon">/(.*?)/</span>')
 
     def _range_sentence_audio(self, range_arr=None):
         m = self.get_html()
