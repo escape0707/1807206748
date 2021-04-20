@@ -4,7 +4,7 @@ import pathlib
 import random
 import re
 import traceback
-from typing import List, Optional
+from typing import Optional
 
 from bs4 import BeautifulSoup
 from bs4.element import Tag
@@ -17,7 +17,7 @@ class Dialect(enum.Enum):
     AMERICAN = "us"
 
 
-PRONUNCIATION_PATTERN_TEMPLATE = r"sound://(\w*?{dialect}_\d+.mp3)"
+PRONUNCIATION_PATTERN_TEMPLATE = r"sound://(\w*?_{dialect}_\w*?.mp3)"
 PATTERN_BY_DIALECT_COLLECTION = {
     dialect: re.compile(PRONUNCIATION_PATTERN_TEMPLATE.format(dialect=dialect.value))
     for dialect in Dialect
